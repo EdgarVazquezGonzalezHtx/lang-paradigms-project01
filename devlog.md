@@ -14,4 +14,18 @@ Overall Flow of The Program:
 7.) Loop again.
 
 Error Handling: Error message should be prefixed with "Error: "
+Expressions:
++ A binary operator that adds together the result of two expressions.
+* A binary operator that multiplies together the result of two expressions.
+/ A binary operator that divides (integer division) the result of the first expression by the result
+of the second. Don’t forget that the user might try to divide by zero. This is an error.
+- A unary operator that negates the value of an expression. There is no subtraction. To subtract
+we can add a negative number.
+$n  A integer value specifying to use the history value corresponding to id n.
+any number – a value
+
+Whitespace: Only matters to distinguish the 'tokens'. Therefore only the inital whitespace matters. We don't tokenize first because [operand][number] must be valid.
+
+
+
 
