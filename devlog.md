@@ -25,6 +25,8 @@ $n  A integer value specifying to use the history value corresponding to id n.
 any number – a value
 
 Whitespace: Only matters to distinguish the 'tokens'. Therefore only the inital whitespace matters. We don't tokenize first because [operand][number] must be valid.
+# 3/3/26 9:45
+Stack queue implementation won't work because we have to evaluate while parsing and return (value, remaining input).
 
 
 
