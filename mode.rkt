@@ -1,7 +1,7 @@
 #lang racket
 
 ;; ----------------------------
-;; Mode detection
+;; Mode detection (given)
 ;; ----------------------------
 (define prompt?
   (let ([args (current-command-line-arguments)])
@@ -39,13 +39,11 @@
   (unless (digit? (first cs))
     (error 'parse-number "Invalid Expression"))
 
-  ;; integer part
   (define-values (int-chars rest1)
     (take-while digit? cs))
   (when (empty? int-chars)
     (error 'parse-number "Invalid Expression"))
 
-  ;; optional fractional part
   (cond
     [(and (not (empty? rest1)) (char=? (first rest1) #\.))
      (define rest-after-dot (rest rest1))
@@ -53,34 +51,34 @@
        (take-while digit? rest-after-dot))
      (when (empty? frac-chars)
        (error 'parse-number "Invalid Expression")) ; disallow "12."
+
      (define num-str
        (list->string (append int-chars (list #\.) frac-chars)))
-     (values (string->number num-str) rest2)]
+     (define n (string->number num-str))
+     (unless n (error 'parse-number "Invalid Expression"))
+     (values n rest2)]
     [else
      (define num-str (list->string int-chars))
-     (values (string->number num-str) rest1)]))
+     (define n (string->number num-str))
+     (unless n (error 'parse-number "Invalid Expression"))
+     (values n rest1)]))
 
-;; parse-expr: currently supports numbers + unary '-' negation
+;; parse-expr: numbers + unary '-' negation
 (define (parse-expr chars history)
   (define cs (skip-ws chars))
   (when (empty? cs)
     (error 'parse-expr "Invalid Expression"))
-
   (define c (first cs))
   (cond
-    ;; unary negation
     [(char=? c #\-)
      (define-values (v rest) (parse-expr (rest cs) history))
      (values (- v) rest)]
-
-    ;; number
     [(digit? c)
      (parse-number cs)]
-
     [else
      (error 'parse-expr "Invalid Expression")]))
 
-;; eval-line: parse exactly one expression, error if extra non-ws remains
+;; parse exactly one expression; error if extra non-ws remains
 (define (eval-line line history)
   (define chars (string->list line))
   (define-values (v rest) (parse-expr chars history))
@@ -105,24 +103,23 @@
 
 ;; ----------------------------
 ;; Main loop
-;; history: list of past results, newest-first
-;; next-id: next id to assign (starts at 1)
 ;; ----------------------------
 (define (repl history next-id)
   (when prompt?
     (display "> ")
     (flush-output))
-
   (define line (read-line))
   (cond
     [(eof-object? line) (void)]
     [(string=? line "quit") (void)]
     [else
      (with-handlers ([exn:fail?
-                      (λ (e)
+                      (lambda (e)
+                        (displayln (string-append "DEBUG exn: " (exn-message e))) ;;debugging
                         (print-error "Invalid Expression")
                         (repl history next-id))])
        (let ([v (eval-line line history)])
+         (displayln v) ;;debugging
          (print-result next-id v)
          (repl (cons v history) (add1 next-id))))]))
 
