@@ -10,29 +10,16 @@
       [(string=? (vector-ref args 0) "-b") #f]
       [(string=? (vector-ref args 0) "--batch") #f]
       [else #t])))
-;;----------------------
-;; Evaluating line
-;;------------------------
-(define (eval-line line history)
-  (define chars (string->list line))
-  (define-values (v rest) (parse-expr chars history))
-  (define rest2 (skip-ws rest))
-  (if (empty? rest2)
-      v
-      (error 'eval-line "Invalid Expression")))
-;;---------------------------
-;; Whitespace skipping
-;;----------------------------
+
+;; ----------------------------
+;; Parsing helpers
+;; ----------------------------
 (define (skip-ws chars)
   (cond
     [(empty? chars) '()]
     [(char-whitespace? (first chars)) (skip-ws (rest chars))]
     [else chars]))
-;; ----------------------------
 
-;; ----------------------------
-;; Character helpers
-;; ----------------------------
 (define (digit? c)
   (and (char? c) (char-numeric? c)))
 
@@ -44,11 +31,7 @@
      (values (cons (first chars) taken) rest)]
     [else (values '() chars)]))
 
-;; ----------------------------
-;; parse-number: reads a numeric literal from the front of chars
-;; Grammar supported: DIGITS ('.' DIGITS)?
-;; Returns (values number remaining-chars) or raises error
-;; ----------------------------
+;; parse-number: DIGITS ('.' DIGITS)?
 (define (parse-number chars)
   (define cs (skip-ws chars))
   (when (empty? cs)
@@ -59,7 +42,6 @@
   ;; integer part
   (define-values (int-chars rest1)
     (take-while digit? cs))
-
   (when (empty? int-chars)
     (error 'parse-number "Invalid Expression"))
 
@@ -78,13 +60,7 @@
      (define num-str (list->string int-chars))
      (values (string->number num-str) rest1)]))
 
-;; ----------------------------
-;; parse-expr: parses ONE prefix expression from chars
-;; Current version supports:
-;;  - number literals
-;;  - unary '-' negation
-;; Returns (values value remaining-chars) or raises error
-;; ----------------------------
+;; parse-expr: currently supports numbers + unary '-' negation
 (define (parse-expr chars history)
   (define cs (skip-ws chars))
   (when (empty? cs)
@@ -103,6 +79,17 @@
 
     [else
      (error 'parse-expr "Invalid Expression")]))
+
+;; eval-line: parse exactly one expression, error if extra non-ws remains
+(define (eval-line line history)
+  (define chars (string->list line))
+  (define-values (v rest) (parse-expr chars history))
+  (define rest2 (skip-ws rest))
+  (if (empty? rest2)
+      v
+      (error 'eval-line "Invalid Expression")))
+
+;; ----------------------------
 ;; Output helpers
 ;; ----------------------------
 (define (print-result id v)
@@ -123,25 +110,21 @@
 ;; ----------------------------
 (define (repl history next-id)
   (when prompt?
-    (display "> Plese enter your prefix expression (quit to close the program)")
+    (display "> ")
     (flush-output))
 
   (define line (read-line))
   (cond
-    [(eof-object? line) (void)]          ; end of input -> exit
-    [(string=? line "quit") (void)]      ; exact "quit" -> exit
+    [(eof-object? line) (void)]
+    [(string=? line "quit") (void)]
     [else
      (with-handlers ([exn:fail?
                       (λ (e)
                         (print-error "Invalid Expression")
-                        (displayln (exn-message e))
                         (repl history next-id))])
-       (define v (eval-line line history))   ; <- we’ll implement this
-       (print-result next-id v)
-       (repl (cons v history) (add1 next-id)))]))
-
-;; ----------------------------
-
+       (let ([v (eval-line line history)])
+         (print-result next-id v)
+         (repl (cons v history) (add1 next-id))))]))
 
 (module+ main
   (repl '() 1))
