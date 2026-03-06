@@ -34,6 +34,7 @@ Error handler keeps detecting any input as an error
 # 3/6/26 7:17am
 Variable naming was causing the bug. Fixed.
 7:26 am : implemented binary and unary operators while parsing.
+8:16 am : implemented history parser to save numbers to register like location e.x) $n (n being an integer)
 
 
 
