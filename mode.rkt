@@ -96,12 +96,29 @@
        (error 'parse-expr "Invalid Expression"))
      (values (/ v1 v2) rem2)]
 
+    ;; history reference
+    [(char=? c #\$)
+     (define-values (n rem) (parse-int (rest cs)))
+     (define hist (reverse history))
+
+     (when (or (< n 1) (> n (length hist)))
+       (error 'parse-expr "Invalid Expression"))
+
+     (values (list-ref hist (sub1 n)) rem)]
+
     ;; number
     [(digit? c)
      (parse-number cs)]
 
     [else
      (error 'parse-expr "Invalid Expression")]))
+
+;; Helper to read registered integers
+(define (parse-int chars)
+  (define-values (digits rem) (take-while digit? chars))
+  (when (empty? digits)
+    (error 'parse-int "Invalid Expression"))
+  (values (string->number (list->string digits)) rem))
 
 ;; parse exactly one expression; error if extra non-ws remains
 (define (eval-line line history)
