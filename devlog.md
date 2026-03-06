@@ -30,6 +30,9 @@ Whitespace: Only matters to distinguish the 'tokens'. Therefore only the inital 
 Stack queue implementation won't work because we have to evaluate while parsing and return (value, remaining input).
 # 3/4/26 7:13am
 Error handler keeps detecting any input as an error
+====================================================================================================================
+# 3/6/26 7:17am
+Variable naming was causing the bug. Fixed.
 
 
 
