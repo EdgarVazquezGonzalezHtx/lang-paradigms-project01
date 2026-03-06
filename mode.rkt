@@ -68,13 +68,38 @@
   (define cs (skip-ws chars))
   (when (empty? cs)
     (error 'parse-expr "Invalid Expression"))
+
   (define c (first cs))
   (cond
+    ;; unary negation
     [(char=? c #\-)
      (define-values (v rem) (parse-expr (rest cs) history))
      (values (- v) rem)]
+
+    ;; binary addition
+    [(char=? c #\+)
+     (define-values (v1 rem1) (parse-expr (rest cs) history))
+     (define-values (v2 rem2) (parse-expr rem1 history))
+     (values (+ v1 v2) rem2)]
+
+    ;; binary multiplication
+    [(char=? c #\*)
+     (define-values (v1 rem1) (parse-expr (rest cs) history))
+     (define-values (v2 rem2) (parse-expr rem1 history))
+     (values (* v1 v2) rem2)]
+
+    ;; binary division
+    [(char=? c #\/)
+     (define-values (v1 rem1) (parse-expr (rest cs) history))
+     (define-values (v2 rem2) (parse-expr rem1 history))
+     (when (zero? v2)
+       (error 'parse-expr "Invalid Expression"))
+     (values (/ v1 v2) rem2)]
+
+    ;; number
     [(digit? c)
      (parse-number cs)]
+
     [else
      (error 'parse-expr "Invalid Expression")]))
 
