@@ -33,7 +33,7 @@ Error handler keeps detecting any input as an error
 ====================================================================================================================
 # 3/6/26 7:17am
 Variable naming was causing the bug. Fixed.
-
+7:26 am : implemented binary and unary operators while parsing.
 
 
 
